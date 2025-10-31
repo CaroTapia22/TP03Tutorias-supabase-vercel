@@ -2,81 +2,103 @@
 <html lang="es">
 <head>
   <meta charset="UTF-8">
-  <title>Listado de Productos</title>
-  <!-- ============================================= -->
-  <!-- 💡 Aquí podés agregar tus estilos o Bootstrap -->
-  <!-- Ejemplo: <link rel="stylesheet" href="...bootstrap.css"> -->
-  <!-- ============================================= -->
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Productos | Supabase + Vercel</title>
+
+  <link
+    href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css"
+    rel="stylesheet"
+  >
+  <style>
+    body {
+      padding-top: 70px;
+    }
+  </style>
 </head>
 <body>
-  <!-- ============================================= -->
-  <!-- 💡 Aquí podés agregar un encabezado o navbar -->
-  <!-- ============================================= -->
-  <h1>Productos en la Base de Datos</h1>
 
-  <!-- Contenedor donde se mostrará la lista -->
-  <div id="productos"></div>
+  <nav class="navbar navbar-expand-lg navbar-dark bg-dark fixed-top">
+    <div class="container-fluid">
+      <a class="navbar-brand fw-bold" href="#">Mis Productos</a>
+      <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+        <span class="navbar-toggler-icon"></span>
+      </button>
+      <div class="collapse navbar-collapse" id="navbarNav">
+        <ul class="navbar-nav ms-auto">
+          <li class="nav-item"><a class="nav-link active" href="#">Inicio</a></li>
+          <li class="nav-item"><a class="nav-link" href="#iframe">Video</a></li>
+        </ul>
+      </div>
+    </div>
+  </nav>
 
-  <!-- ============================================= -->
-  <!-- 💡 Aquí podés agregar un pie de página o scripts de diseño -->
-  <!-- ============================================= -->
+  <div class="container my-4">
+    <h1 class="text-center mb-4">Productos en la Base de Datos</h1>
 
-  <!-- Librería Supabase desde CDN -->
+    <div class="text-center mb-4">
+      <button id="recargar" class="btn btn-primary">🔄 Recargar lista</button>
+    </div>
+
+    <div id="productos" class="row justify-content-center"></div>
+
+    <div id="iframe" class="text-center my-5">
+      <h2>🎥 Video de ejemplo</h2>
+      <iframe width="560" height="315" 
+        src="https://www.youtube.com/embed/VYOjWnS4cMY" 
+        title="Video de ejemplo"
+        frameborder="0"
+        allowfullscreen>
+      </iframe>
+    </div>
+  </div>
+
+  <footer class="bg-dark text-white text-center py-3">
+    <p class="mb-0">© 2025 - Proyecto Supabase + Vercel | Hecho por Sofía Tapia 💻</p>
+  </footer>
+
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 
   <script>
-    // =============================================
-    // 🔧 CONFIGURACIÓN DE SUPABASE
-    // =============================================
     const SUPABASE_URL = "https://oseuyxskmftrbfavymjn.supabase.co";
     const SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im9zZXV5eHNrbWZ0cmJmYXZ5bWpuIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjEzMzAwMDQsImV4cCI6MjA3NjkwNjAwNH0.F6iF0QK9G50rYpoMJv73y-Xv1UUqa0PEVfo6LvYHz3I";
-
-    // Crear cliente de conexión
     const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
-    // =============================================
-    // 🚀 FUNCIÓN PARA CONSULTAR LOS PRODUCTOS
-    // =============================================
     async function cargarProductos() {
-      try {
-        // Consulta a la tabla 'productos'
-        const { data, error } = await supabase.from("productos").select("*");
+      const contenedor = document.getElementById("productos");
+      contenedor.innerHTML = "<p class='text-center'>Cargando productos...</p>";
 
-        // Si hay error, se muestra mensaje al usuario
-        if (error) {
-          document.getElementById("productos").innerHTML = 
-            `<p style="color:red;">❌ Error al cargar los datos: ${error.message}</p>`;
-          return;
-        }
+      const { data, error } = await supabase.from("productos").select("*");
 
-        // Si no hay datos
-        if (!data || data.length === 0) {
-          document.getElementById("productos").innerHTML = 
-            "<p>No hay productos cargados en la base de datos.</p>";
-          return;
-        }
-
-        // Crear elementos para mostrar los productos
-        const contenedor = document.getElementById("productos");
-        const lista = document.createElement("ul");
-
-        data.forEach((item) => {
-          const elemento = document.createElement("li");
-          elemento.textContent = 
-            `ID: ${item.id} | Nombre: ${item.nombre} | Precio: $${item.precio} | Descripción: ${item.descripcion} | Estado: ${item.estado}`;
-          lista.appendChild(elemento);
-        });
-
-        contenedor.appendChild(lista);
-
-      } catch (err) {
-        // Si hay error general (por ejemplo, sin conexión)
-        document.getElementById("productos").innerHTML = 
-          `<p style="color:red;">⚠️ Error inesperado: ${err.message}</p>`;
+      if (error) {
+        contenedor.innerHTML = `<p class='text-danger text-center'>❌ Error: ${error.message}</p>`;
+        return;
       }
+
+      if (!data || data.length === 0) {
+        contenedor.innerHTML = "<p class='text-center text-muted'>No hay productos cargados en la base de datos.</p>";
+        return;
+      }
+
+      contenedor.innerHTML = "";
+
+      data.forEach((item) => {
+        const card = document.createElement("div");
+        card.classList.add("card", "m-2", "p-2", "col-md-5", "shadow-sm");
+
+        card.innerHTML = `
+          <div class="card-body">
+            <h5 class="card-title fw-bold">${item.nombre}</h5>
+            <p class="card-text">${item.descripcion}</p>
+            <p class="card-text"><strong>Precio:</strong> $${item.precio}</p>
+            <p class="card-text"><strong>Estado:</strong> ${item.estado ? "Activo" : "Inactivo"}</p>
+          </div>
+        `;
+        contenedor.appendChild(card);
+      });
     }
 
-    // Llamar a la función al cargar la página
+    document.getElementById("recargar").addEventListener("click", cargarProductos);
     cargarProductos();
   </script>
 </body>
